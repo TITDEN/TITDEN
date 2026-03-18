@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khmer Calendar - March 2026</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        h2 {
+            text-align: center;
+            color: #667eea;
+            margin-top: 0;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .calendar-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-align: center;
+        }
+        .calendar-table td {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            vertical-align: top;
+            height: 100px;
+            transition: all 0.3s ease;
+        }
+        .calendar-table td:hover {
+            background: #f5f5ff;
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        .gregorian-date {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .khmer-date {
+            font-size: 1.1em;
+            color: #667eea;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .moon-phase {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .moon-phase.rising {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+        .moon-phase.setting {
+            background: #b2bec3;
+            color: #2d3436;
+        }
+        .weekend {
+            background-color: #fff5f5;
+        }
+        .today {
+            background-color: #e8f4fd;
+            border: 2px solid #667eea;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+        .khmer-details {
+            font-size: 0.9em;
+            margin-top: 5px;
+            color: #555;
+        }
+    </style>
+    <!-- Include MomentKH library -->
+    <script src="https://cdn.jsdelivr.net/npm/momentkh@3.0.3/dist/momentkh.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🇰🇭 ប្រតិទិនខ្មែរ</h1>
+        <h2>March 2026 / ខែចេត្រ ២៥៦៩</h2>
+        
+        <table class="calendar-table" id="calendar-table">
+            <thead>
+                <tr>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                    <th>Sun</th>
+                </tr>
+            </thead>
+            <tbody id="calendar-body">
+                <tr>
+                    <td colspan="7" class="loading">Loading Khmer calendar data...</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>Based on MomentKH v3.0.3 • Khmer Buddhist Calendar • ពុទ្ធសករាជ ២៥៦៩</p>
+        </div>
+    </div>
+
+    <script>
+        // Wait for the DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateCalendar(2026, 2); // March is month 2 (0-indexed)
+        });
+
+        function generateCalendar(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // Adjust for Monday as first day (0 = Monday, 6 = Sunday)
+            let startOffset = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+            
+            const tbody = document.getElementById('calendar-body');
+            tbody.innerHTML = '';
+            
+            let date = 1;
+            let khmerDates = [];
+            
+            // Pre-calculate all Khmer dates for the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const gregorianDate = new Date(year, month, day);
+                try {
+                    const khmerDate = momentkh.fromDate(gregorianDate);
+                    
+                    // Format Khmer date
+                    let moonPhase = '';
+                    if (khmerDate.khmer.moonPhase === 1) {
+                        moonPhase = '🌙 ១កើត';
+                    } else if (khmerDate.khmer.moonPhase === 15) {
+                        moonPhase = '🌕 ១៥កើត';
+                    } else if (khmerDate.khmer.moonPhase === 1 && khmerDate.khmer.day > 15) {
+                        moonPhase = '🌑 ១រោច';
+                    } else if (khmerDate.khmer.moonPhase === 15 && khmerDate.khmer.day > 15) {
+                        moonPhase = '🌗 ១៥រោច';
+                    } else {
+                        moonPhase = `${khmerDate.khmer.day}${khmerDate.khmer.moonPhase <= 15 ? 'កើត' : 'រោច'}`;
+                    }
+                    
+                    khmerDates.push({
+                        full: khmerDate,
+                        dayName: khmerDate.khmer.dayName,
+                        date: `${khmerDate.khmer.day} ${moonPhase}`,
+                        month: khmerDate.khmer.monthName,
+                        year: khmerDate.khmer.beYear,
+                        animalYear: khmerDate.khmer.animalYear,
+                        gregorian: day
+                    });
+                } catch (e) {
+                    console.error('Error converting date:', e);
+                    khmerDates.push({
+                        full: null,
+                        dayName: 'Error',
+                        date: 'N/A',
+                        month: 'N/A',
+                        year: 'N/A',
+                        animalYear: 'N/A',
+                        gregorian: day
+                    });
+                }
+            }
+            
+            // Create calendar rows
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
+                
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    
+                    if (i === 0 && j < startOffset) {
+                        // Empty cells before first day
+                        cell.innerHTML = '';
+                    } else if (date > daysInMonth) {
+                        // Empty cells after last day
+                        cell.innerHTML = '';
+                    } else {
+                        const khmerInfo = khmerDates[date - 1];
+                        
+                        // Check if it's weekend (Saturday = 5, Sunday = 6)
+                        const dayOfWeek = j;
+                        if (dayOfWeek === 5 || dayOfWeek === 6) {
+                            cell.classList.add('weekend');
+                        }
+                        
+                        // Check if it's today (for demo purposes, highlight March 19, 2026)
+                        if (year === 2026 && month === 2 && date === 19) {
+                            cell.classList.add('today');
+                        }
+                        
+                        cell.innerHTML = `
+                            <div class="gregorian-date">${date}</div>
+                            <div class="khmer-date">
+                                <strong>${khmerInfo.dayName}</strong><br>
+                                ${khmerInfo.date}<br>
+                                <span class="khmer-details">
+                                    ${khmerInfo.month}<br>
+                                    ព.ស. ${khmerInfo.year}<br>
+                                    ឆ្នាំ${khmerInfo.animalYear}
+                                </span>
+                            </div>
+                        `;
+                        
+                        date++;
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+                
+                if (date > daysInMonth) {
+                    break;
+                }
+            }
+            
+            // Add Khmer New Year info if applicable
+            try {
+                const newYear2026 = momentkh.getNewYear(2026);
+                console.log('Khmer New Year 2026:', newYear2026);
+                
+                // You could display this information in a separate div
+                const footer = document.querySelector('.footer');
+                if (newYear2026) {
+                    footer.innerHTML += `<br><small>🎊 Khmer New Year 2026: ${newYear2026.month}/${newYear2026.day}/${newYear2026.year}</small>`;
+                }
+            } catch (e) {
+                console.log('New Year info not available');
+            }
+        }
+    </script>
+</body>
+</html>
